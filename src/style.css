@@ -231,7 +231,8 @@ select option {
 
 .players-info {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 2rem;
   width: 100%;
   max-width: calc(var(--cell-size) * 9);
   padding: 0 0.5rem;
@@ -281,7 +282,6 @@ select option {
 
 .cell.given {
   color: var(--given-color);
-  background: rgba(255, 255, 255, 0.03);
 }
 
 .cell.input { color: var(--input-color); }
@@ -369,7 +369,7 @@ select option {
 
 .numpad {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
 }
 
