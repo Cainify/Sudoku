@@ -489,8 +489,8 @@ function executeTroll(action: string) {
     setTimeout(() => document.getElementById('board')?.classList.remove('drunk-mode'), 10000);
   } else if (action === 'rickroll') {
     const iframe = document.createElement('iframe');
-    iframe.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&controls=0&disablekb=1';
-    iframe.allow = 'autoplay';
+    iframe.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&controls=0&disablekb=1&mute=0&rel=0';
+    iframe.allow = 'autoplay; encrypted-media';
     iframe.className = 'rickroll-overlay';
     document.body.appendChild(iframe);
     setTimeout(() => iframe.remove(), 12000);
