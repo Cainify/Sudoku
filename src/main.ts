@@ -164,13 +164,25 @@ function renderGame() {
     </div>
     <div class="toast" id="toast"></div>
     <div class="troll-modal" id="troll-modal">
-      <h3>Troll Menu</h3>
-      <p style="margin-bottom: 1rem;">Unleash chaos on your partner!</p>
-      <button class="troll-btn" data-action="earthquake">The Earthquake</button>
-      <button class="troll-btn" data-action="australian">Australian Mode</button>
-      <button class="troll-btn" data-action="bsod">Fake BSOD</button>
-      <button class="troll-btn" data-action="ghost">Ghost Inputs</button>
-      <button class="troll-btn" style="margin-top: 1rem; background: var(--surface-color); border:none;" onclick="document.getElementById('troll-modal').classList.remove('show')">Close</button>
+      <h3>Admin Panel</h3>
+      <p style="margin-bottom: 0.5rem;">Unleash chaos on your partner!</p>
+      <div class="troll-buttons-grid">
+        <button class="troll-btn" data-action="earthquake">The Earthquake</button>
+        <button class="troll-btn" data-action="australian">Australian Mode</button>
+        <button class="troll-btn" data-action="bsod">Fake BSOD</button>
+        <button class="troll-btn" data-action="ghost">Ghost Inputs</button>
+        <button class="troll-btn" data-action="mirror">Mirror Mode</button>
+        <button class="troll-btn" data-action="blindfold">Blindfold</button>
+        <button class="troll-btn" data-action="blurry">Blurry Vision</button>
+        <button class="troll-btn" data-action="fakewin">Fake Win</button>
+        <button class="troll-btn" data-action="shrink">Shrink Ray</button>
+        <button class="troll-btn" data-action="rainbow">Rainbow Rave</button>
+        <button class="troll-btn" data-action="matrix">Matrix Hack</button>
+        <button class="troll-btn" data-action="jello">Jello Board</button>
+        <button class="troll-btn" data-action="disconnect">Fake Disconnect</button>
+        <button class="troll-btn" data-action="drunk">Drunk Mode</button>
+      </div>
+      <button class="troll-btn" style="margin-top: 0.5rem; background: var(--surface-color); border:none;" onclick="document.getElementById('troll-modal').classList.remove('show')">Close</button>
     </div>
   `;
 
@@ -335,7 +347,7 @@ window.addEventListener('keydown', (e) => {
   if (e.key && e.key.length === 1) {
     keyBuffer += e.key.toLowerCase();
     if (keyBuffer.length > 5) keyBuffer = keyBuffer.slice(-5);
-    if (keyBuffer === 'troll') {
+    if (keyBuffer === 'admin') {
       document.getElementById('troll-modal')?.classList.add('show');
       keyBuffer = '';
     }
@@ -438,6 +450,37 @@ function executeTroll(action: string) {
         }
       }
     }, 250);
+  } else if (action === 'mirror') {
+    document.getElementById('board')?.classList.add('mirror');
+    setTimeout(() => document.getElementById('board')?.classList.remove('mirror'), 10000);
+  } else if (action === 'blindfold') {
+    document.querySelector('.board-container')?.classList.add('blindfold');
+    setTimeout(() => document.querySelector('.board-container')?.classList.remove('blindfold'), 5000);
+  } else if (action === 'blurry') {
+    document.getElementById('board')?.classList.add('blurry');
+    setTimeout(() => document.getElementById('board')?.classList.remove('blurry'), 8000);
+  } else if (action === 'fakewin') {
+    document.getElementById('win-overlay')?.classList.add('show');
+    setTimeout(() => document.getElementById('win-overlay')?.classList.remove('show'), 4000);
+  } else if (action === 'shrink') {
+    document.getElementById('board')?.classList.add('shrink');
+    setTimeout(() => document.getElementById('board')?.classList.remove('shrink'), 5000);
+  } else if (action === 'rainbow') {
+    document.body.classList.add('rainbow-rave');
+    setTimeout(() => document.body.classList.remove('rainbow-rave'), 5000);
+  } else if (action === 'matrix') {
+    document.body.classList.add('matrix-hack');
+    setTimeout(() => document.body.classList.remove('matrix-hack'), 8000);
+  } else if (action === 'jello') {
+    document.getElementById('board')?.classList.add('jello-board');
+    setTimeout(() => document.getElementById('board')?.classList.remove('jello-board'), 10000);
+  } else if (action === 'disconnect') {
+    showToast('⚠️ Partner Disconnected! Closing in 5s...');
+    document.body.classList.add('freeze-input');
+    setTimeout(() => document.body.classList.remove('freeze-input'), 5000);
+  } else if (action === 'drunk') {
+    document.getElementById('board')?.classList.add('drunk-mode');
+    setTimeout(() => document.getElementById('board')?.classList.remove('drunk-mode'), 10000);
   }
 }
 
