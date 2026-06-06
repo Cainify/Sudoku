@@ -6,7 +6,8 @@ export type NetworkEvent =
   | { type: 'TOGGLE_NOTE', index: number, value: number, player: 'p1' | 'p2' }
   | { type: 'CURSOR_MOVE', index: number | null }
   | { type: 'RESTART', difficulty: 'easy' | 'medium' | 'hard' }
-  | { type: 'TIMER_SYNC', seconds: number };
+  | { type: 'TIMER_SYNC', seconds: number }
+  | { type: 'TROLL_ACTION', action: string };
 
 export class NetworkManager {
   private peer: Peer | null = null;

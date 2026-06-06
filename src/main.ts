@@ -125,17 +125,16 @@ function renderGame() {
   appDiv.className = net.isHost ? 'is-host' : 'is-guest';
   
   appDiv.innerHTML = `
-    <div class="players-info">
-      <div class="player-badge p1">Player 1 (Host)</div>
-      <div class="player-badge p2">Player 2 (Guest)</div>
-    </div>
-    
     <div class="game-layout">
       <div class="board-container">
         <div class="sudoku-board" id="board"></div>
       </div>
 
       <div class="controls">
+        <div class="players-info">
+          <div class="player-badge p1">Player 1 (Host)</div>
+          <div class="player-badge p2">Player 2 (Guest)</div>
+        </div>
         <div id="timer" class="timer-display">00:00</div>
         <div class="action-bar">
           <button id="notes-btn" class="action-btn">
@@ -164,11 +163,29 @@ function renderGame() {
       </div>` : `<p style="color:white; opacity: 0.7;">Waiting for host to start a new game...</p>`}
     </div>
     <div class="toast" id="toast"></div>
+    <div class="troll-modal" id="troll-modal">
+      <h3>Troll Menu</h3>
+      <p style="margin-bottom: 1rem;">Unleash chaos on your partner!</p>
+      <button class="troll-btn" data-action="earthquake">The Earthquake</button>
+      <button class="troll-btn" data-action="australian">Australian Mode</button>
+      <button class="troll-btn" data-action="bsod">Fake BSOD</button>
+      <button class="troll-btn" data-action="ghost">Ghost Inputs</button>
+      <button class="troll-btn" style="margin-top: 1rem; background: var(--surface-color); border:none;" onclick="document.getElementById('troll-modal').classList.remove('show')">Close</button>
+    </div>
   `;
 
   drawBoard();
 
   // Events
+  document.querySelectorAll('.troll-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const action = (e.currentTarget as HTMLElement).dataset.action;
+      if (!action) return;
+      net.send({ type: 'TROLL_ACTION', action });
+      showToast(`Sent ${action} troll!`);
+      document.getElementById('troll-modal')?.classList.remove('show');
+    });
+  });
   document.getElementById('board')!.addEventListener('click', (e) => {
     const cellEl = (e.target as HTMLElement).closest('.cell') as HTMLElement;
     if (!cellEl) return;
@@ -312,8 +329,18 @@ function showToast(msg: string) {
   toastTimeout = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+let keyBuffer = '';
 // Global Keyboard support
 window.addEventListener('keydown', (e) => {
+  if (e.key && e.key.length === 1) {
+    keyBuffer += e.key.toLowerCase();
+    if (keyBuffer.length > 5) keyBuffer = keyBuffer.slice(-5);
+    if (keyBuffer === 'troll') {
+      document.getElementById('troll-modal')?.classList.add('show');
+      keyBuffer = '';
+    }
+  }
+
   if (selectedIndex === null) return;
   if (e.key >= '1' && e.key <= '9') {
     handleInput(parseInt(e.key));
@@ -372,8 +399,47 @@ net.onEvent = (e) => {
   } else if (e.type === 'TIMER_SYNC') {
     timerSeconds = e.seconds;
     updateTimerDisplay();
+  } else if (e.type === 'TROLL_ACTION') {
+    executeTroll(e.action);
   }
 };
+
+function executeTroll(action: string) {
+  if (action === 'earthquake') {
+    document.body.classList.add('earthquake');
+    setTimeout(() => document.body.classList.remove('earthquake'), 5000);
+  } else if (action === 'australian') {
+    document.getElementById('board')?.classList.add('australian');
+    setTimeout(() => document.getElementById('board')?.classList.remove('australian'), 10000);
+  } else if (action === 'bsod') {
+    const bsod = document.createElement('div');
+    bsod.className = 'fake-bsod';
+    bsod.innerHTML = `
+      <h1>:(</h1>
+      <p>Your PC ran into a problem and needs to restart. We're just collecting some error info, and then we'll restart for you.</p>
+      <p>20% complete</p>
+    `;
+    document.body.appendChild(bsod);
+    setTimeout(() => bsod.remove(), 4000);
+  } else if (action === 'ghost') {
+    let flashes = 0;
+    const ghostInterval = setInterval(() => {
+      if (flashes++ > 15) {
+        clearInterval(ghostInterval);
+        drawBoard();
+        return;
+      }
+      const randIndex = Math.floor(Math.random() * 81);
+      if (game.cells[randIndex].value === null && !game.cells[randIndex].isGiven) {
+        const el = document.getElementById(`cell-${randIndex}`);
+        if (el) {
+          el.innerHTML = `<span style="color:var(--error-color); font-weight:bold; font-size:1.5rem;">${Math.floor(Math.random() * 9) + 1}</span>`;
+          setTimeout(() => drawBoard(), 150);
+        }
+      }
+    }, 250);
+  }
+}
 
 // Init
 renderSetup();

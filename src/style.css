@@ -231,11 +231,10 @@ select option {
 
 .players-info {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
+  justify-content: space-between;
   width: 100%;
-  max-width: calc(var(--cell-size) * 9);
   padding: 0 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .player-badge {
@@ -459,5 +458,112 @@ select option {
   background: linear-gradient(135deg, #fcd34d, #f59e0b);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+}
+
+/* Troll Features */
+.troll-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(15, 23, 42, 0.95);
+  border: 2px solid var(--secondary-color);
+  box-shadow: 0 0 40px rgba(236, 72, 153, 0.5);
+  border-radius: 16px;
+  padding: 2rem;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  color: white;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.troll-modal.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.troll-modal h3 {
+  color: var(--secondary-color);
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.troll-btn {
+  background: rgba(236, 72, 153, 0.2);
+  border: 1px solid var(--secondary-color);
+  padding: 1rem;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: bold;
+}
+
+.troll-btn:hover {
+  background: var(--secondary-color);
+  transform: scale(1.05);
+}
+
+@keyframes earthquake {
+  0% { transform: translate(0, 0) rotate(0); }
+  10% { transform: translate(-10px, 10px) rotate(-2deg); }
+  20% { transform: translate(15px, -15px) rotate(3deg); }
+  30% { transform: translate(-20px, -10px) rotate(-1deg); }
+  40% { transform: translate(10px, 20px) rotate(2deg); }
+  50% { transform: translate(-15px, 5px) rotate(-3deg); }
+  60% { transform: translate(20px, -5px) rotate(1deg); }
+  70% { transform: translate(-5px, -15px) rotate(-2deg); }
+  80% { transform: translate(15px, 10px) rotate(3deg); }
+  90% { transform: translate(-10px, 5px) rotate(-1deg); }
+  100% { transform: translate(0, 0) rotate(0); }
+}
+
+.earthquake {
+  animation: earthquake 0.3s infinite;
+}
+
+.australian {
+  transform: rotate(180deg) !important;
+  transition: transform 2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.fake-bsod {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #0078d7;
+  color: white;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  padding: 4rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.fake-bsod h1 {
+  font-size: 8rem;
+  font-weight: normal;
+  margin-bottom: 2rem;
+  text-align: left;
+  background: none;
+  -webkit-text-fill-color: white;
+}
+
+.fake-bsod p {
+  font-size: 1.5rem;
+  text-align: left;
   margin-bottom: 1rem;
 }
