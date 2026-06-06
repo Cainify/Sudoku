@@ -2,10 +2,11 @@ import Peer, { type DataConnection } from 'peerjs';
 
 export type NetworkEvent = 
   | { type: 'INIT_STATE', state: any }
-  | { type: 'SET_VALUE', index: number, value: number | null }
+  | { type: 'SET_VALUE', index: number, value: number | null, player: 'p1' | 'p2' }
   | { type: 'TOGGLE_NOTE', index: number, value: number, player: 'p1' | 'p2' }
   | { type: 'CURSOR_MOVE', index: number | null }
-  | { type: 'RESTART', difficulty: 'easy' | 'medium' | 'hard' };
+  | { type: 'RESTART', difficulty: 'easy' | 'medium' | 'hard' }
+  | { type: 'TIMER_SYNC', seconds: number };
 
 export class NetworkManager {
   private peer: Peer | null = null;
@@ -24,7 +25,14 @@ export class NetworkManager {
     const roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
     
     return new Promise((resolve, reject) => {
-      this.peer = new Peer(`sudokoop-${roomId}`);
+      this.peer = new Peer(`sudokoop-${roomId}`, {
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ]
+        }
+      });
       
       this.peer.on('open', () => {
         resolve(roomId);
@@ -41,9 +49,13 @@ export class NetworkManager {
           return;
         }
         this.conn = c;
-        c.on('open', () => {
+        if (c.open) {
           this.setupConnection();
-        });
+        } else {
+          c.on('open', () => {
+            this.setupConnection();
+          });
+        }
       });
     });
   }
@@ -52,7 +64,14 @@ export class NetworkManager {
     this.isHost = false;
     
     return new Promise((resolve, reject) => {
-      this.peer = new Peer();
+      this.peer = new Peer({
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ]
+        }
+      });
       
       this.peer.on('open', () => {
         const c = this.peer!.connect(`sudokoop-${roomId.toUpperCase()}`);

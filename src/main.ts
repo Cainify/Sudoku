@@ -8,6 +8,30 @@ const net = new NetworkManager();
 let selectedIndex: number | null = null;
 let notesMode = false;
 let partnerCursorIndex: number | null = null;
+let timerSeconds = 0;
+let timerInterval: any = null;
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerSeconds = 0;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    if (document.getElementById('win-overlay')?.classList.contains('show')) return;
+    timerSeconds++;
+    updateTimerDisplay();
+    if (net.isHost && timerSeconds % 3 === 0) {
+      net.send({ type: 'TIMER_SYNC', seconds: timerSeconds });
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('timer');
+  if (!el) return;
+  const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+  const s = (timerSeconds % 60).toString().padStart(2, '0');
+  el.innerText = `${m}:${s}`;
+}
 
 const appDiv = document.getElementById('app')!;
 
@@ -106,23 +130,26 @@ function renderGame() {
       <div class="player-badge p2">Player 2 (Guest)</div>
     </div>
     
-    <div class="board-container">
-      <div class="sudoku-board" id="board"></div>
-    </div>
-
-    <div class="controls">
-      <div class="action-bar">
-        <button id="notes-btn" class="action-btn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-          Notes: OFF
-        </button>
-        <button id="erase-btn" class="action-btn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16C2.5 15.5 2.5 14.5 3 14L13 4C13.5 3.5 14.5 3.5 15 4L20 9C20.5 9.5 20.5 10.5 20 11L11 20"></path></svg>
-          Erase
-        </button>
+    <div class="game-layout">
+      <div class="board-container">
+        <div class="sudoku-board" id="board"></div>
       </div>
-      <div class="numpad" id="numpad">
-        ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="num-btn" data-val="${n}">${n}</button>`).join('')}
+
+      <div class="controls">
+        <div id="timer" class="timer-display">00:00</div>
+        <div class="action-bar">
+          <button id="notes-btn" class="action-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            Notes: OFF
+          </button>
+          <button id="erase-btn" class="action-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16C2.5 15.5 2.5 14.5 3 14L13 4C13.5 3.5 14.5 3.5 15 4L20 9C20.5 9.5 20.5 10.5 20 11L11 20"></path></svg>
+            Erase
+          </button>
+        </div>
+        <div class="numpad" id="numpad">
+          ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="num-btn" data-val="${n}">${n}</button>`).join('')}
+        </div>
       </div>
     </div>
     
@@ -193,7 +220,8 @@ function handleInput(val: number | null) {
     game.toggleNote(selectedIndex, val, net.isHost ? 'p1' : 'p2');
     net.send({ type: 'TOGGLE_NOTE', index: selectedIndex, value: val, player: net.isHost ? 'p1' : 'p2' });
   } else {
-    const success = game.setValue(selectedIndex, val);
+    const player = net.isHost ? 'p1' : 'p2';
+    const success = game.setValue(selectedIndex, val, player);
     if (val !== null && !success) {
       // Error - shake cell
       const el = document.getElementById(`cell-${selectedIndex}`);
@@ -201,7 +229,7 @@ function handleInput(val: number | null) {
       setTimeout(() => el?.classList.remove('error'), 400);
       return;
     }
-    net.send({ type: 'SET_VALUE', index: selectedIndex, value: val });
+    net.send({ type: 'SET_VALUE', index: selectedIndex, value: val, player });
   }
 
   drawBoard();
@@ -230,12 +258,31 @@ function drawBoard() {
     else if (selectedIndex !== null && cell.value !== null && game.cells[selectedIndex].value === cell.value) {
       classes.push('highlight');
     }
+    
+    if (selectedIndex !== null && selectedIndex !== i) {
+      const sRow = Math.floor(selectedIndex / 9);
+      const sCol = selectedIndex % 9;
+      const cRow = Math.floor(i / 9);
+      const cCol = i % 9;
+      const sBoxR = Math.floor(sRow / 3);
+      const sBoxC = Math.floor(sCol / 3);
+      const cBoxR = Math.floor(cRow / 3);
+      const cBoxC = Math.floor(cCol / 3);
+      
+      if (sRow === cRow || sCol === cCol || (sBoxR === cBoxR && sBoxC === cBoxC)) {
+        classes.push('highlight-crosshair');
+      }
+    }
+
     if (partnerCursorIndex === i) classes.push('partner-hover');
 
     html += `<div class="${classes.join(' ')}" id="cell-${i}" data-index="${i}">`;
     
     if (cell.value !== null) {
-      html += cell.value;
+      let valClass = '';
+      if (cell.valueOwner === 'p1') valClass = 'owner-p1';
+      else if (cell.valueOwner === 'p2') valClass = 'owner-p2';
+      html += `<span class="${valClass}">${cell.value}</span>`;
     } else {
       // Draw notes
       html += `<div class="notes-grid">`;
@@ -291,6 +338,7 @@ net.onConnect = () => {
   if (net.isHost) {
     net.send({ type: 'INIT_STATE', state: game.getState() });
     renderGame();
+    startTimer();
   }
 };
 
@@ -303,11 +351,12 @@ net.onEvent = (e) => {
     game.loadState(e.state);
     if (!document.getElementById('board')) {
       renderGame();
+      startTimer();
     } else {
       drawBoard();
     }
   } else if (e.type === 'SET_VALUE') {
-    game.setValue(e.index, e.value);
+    game.setValue(e.index, e.value, e.player);
     drawBoard();
     checkWin();
   } else if (e.type === 'TOGGLE_NOTE') {
@@ -319,6 +368,10 @@ net.onEvent = (e) => {
   } else if (e.type === 'RESTART') {
     document.getElementById('win-overlay')?.classList.remove('show');
     showToast(`Host restarted with ${e.difficulty} difficulty`);
+    startTimer();
+  } else if (e.type === 'TIMER_SYNC') {
+    timerSeconds = e.seconds;
+    updateTimerDisplay();
   }
 };
 

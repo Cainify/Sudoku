@@ -5,6 +5,7 @@ export type PlayerId = 'p1' | 'p2';
 export interface CellState {
   index: number;
   value: number | null;
+  valueOwner: PlayerId | null;
   isGiven: boolean;
   notes: Record<number, PlayerId>;
 }
@@ -23,6 +24,7 @@ export class SudokuGame {
     this.cells = Array.from({ length: 81 }, (_, i) => ({
       index: i,
       value: null,
+      valueOwner: null,
       isGiven: false,
       notes: {}
     }));
@@ -44,6 +46,7 @@ export class SudokuGame {
         this.cells[i] = {
           index: i,
           value: parseInt(char, 10),
+          valueOwner: null,
           isGiven: true,
           notes: {}
         };
@@ -51,6 +54,7 @@ export class SudokuGame {
         this.cells[i] = {
           index: i,
           value: null,
+          valueOwner: null,
           isGiven: false,
           notes: {}
         };
@@ -74,7 +78,7 @@ export class SudokuGame {
     };
   }
 
-  setValue(index: number, value: number | null): boolean {
+  setValue(index: number, value: number | null, player: PlayerId | null = null): boolean {
     if (this.cells[index].isGiven) return false;
     
     if (this.preventWrongEntry && value !== null && value !== this.solution[index]) {
@@ -82,6 +86,7 @@ export class SudokuGame {
     }
     
     this.cells[index].value = value;
+    this.cells[index].valueOwner = player;
     
     if (value !== null) {
       this.cells[index].notes = {};
