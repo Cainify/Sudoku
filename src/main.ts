@@ -167,6 +167,12 @@ function renderGame() {
       <h3>Admin Panel</h3>
       <p style="margin-bottom: 0.5rem;">Unleash chaos on your partner!</p>
       <div class="troll-buttons-grid">
+        <button class="troll-btn" data-action="rickroll">The Rickroll</button>
+        <button class="troll-btn" data-action="flashbang">Flashbang</button>
+        <button class="troll-btn" data-action="fbi">FBI Open Up!</button>
+        <button class="troll-btn" data-action="fart">Fart Clicks</button>
+        <button class="troll-btn" data-action="popups">Pop-up Spam</button>
+        <button class="troll-btn" data-action="error404">Error 404</button>
         <button class="troll-btn" data-action="earthquake">The Earthquake</button>
         <button class="troll-btn" data-action="australian">Australian Mode</button>
         <button class="troll-btn" data-action="bsod">Fake BSOD</button>
@@ -481,6 +487,54 @@ function executeTroll(action: string) {
   } else if (action === 'drunk') {
     document.getElementById('board')?.classList.add('drunk-mode');
     setTimeout(() => document.getElementById('board')?.classList.remove('drunk-mode'), 10000);
+  } else if (action === 'rickroll') {
+    const iframe = document.createElement('iframe');
+    iframe.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&controls=0&disablekb=1';
+    iframe.allow = 'autoplay';
+    iframe.className = 'rickroll-overlay';
+    document.body.appendChild(iframe);
+    setTimeout(() => iframe.remove(), 12000);
+  } else if (action === 'flashbang') {
+    const fb = document.createElement('div');
+    fb.className = 'flashbang-overlay';
+    document.body.appendChild(fb);
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(4000, ctx.currentTime);
+    osc.connect(ctx.destination);
+    osc.start();
+    setTimeout(() => { fb.style.opacity = '0'; }, 500);
+    setTimeout(() => { osc.stop(); ctx.close(); fb.remove(); }, 5000);
+  } else if (action === 'fbi') {
+    new Audio('https://www.myinstants.com/media/sounds/fbi-open-up-sfx.mp3').play().catch(()=>{});
+    const strobe = document.createElement('div');
+    strobe.className = 'police-strobe';
+    document.body.appendChild(strobe);
+    setTimeout(() => strobe.remove(), 4000);
+  } else if (action === 'fart') {
+    const fartFn = () => new Audio('https://www.myinstants.com/media/sounds/fart-with-reverb.mp3').play().catch(()=>{});
+    window.addEventListener('click', fartFn, true);
+    setTimeout(() => { window.removeEventListener('click', fartFn, true); }, 15000);
+  } else if (action === 'popups') {
+    for (let i = 0; i < 10; i++) {
+      const popup = document.createElement('div');
+      popup.className = 'popup-spam';
+      popup.style.top = `${Math.random() * 70 + 10}%`;
+      popup.style.left = `${Math.random() * 70 + 10}%`;
+      popup.innerHTML = `
+        <p>⚠️ CRITICAL ERROR ⚠️<br>Your system is infected with ${Math.floor(Math.random()*9000)+1000} viruses.</p>
+        <button onclick="this.parentElement.remove()">OK</button>
+      `;
+      document.body.appendChild(popup);
+    }
+  } else if (action === 'error404') {
+    new Audio('https://www.myinstants.com/media/sounds/erro.mp3').play().catch(()=>{});
+    const err = document.createElement('div');
+    err.className = 'error-404';
+    err.innerHTML = `<h1>404</h1><p>Not Found</p><p>The requested URL was not found on this server.</p>`;
+    document.body.appendChild(err);
+    setTimeout(() => err.remove(), 8000);
   }
 }
 
